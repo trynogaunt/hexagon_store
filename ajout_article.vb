@@ -45,20 +45,22 @@ Sub AddArticle()
     Next
     
     'Vérifie si un id correspondant est déjà inséré
-    For Each article In waitingInsert
-        duplicate = False
-        For Each insertedValue In rng
-            If tbl.DataBodyRange(insertedValue.Row - 1, tbl.ListColumns(idCell).Index).Value = article(0) And insertedValue.Value = 1 Then
-                tbl.DataBodyRange(article(1), tbl.ListColumns(comCell).Index).Value = "Article non inséré: Doublon existant" 'Commente la valeur déjà existante
-                duplicate = True
+    If Not ArrayIsEmpty(waitingInsert) Then
+        For Each article In waitingInsert
+            duplicate = False
+            For Each insertedValue In rng
+                If tbl.DataBodyRange(insertedValue.Row - 1, tbl.ListColumns(idCell).Index).Value = article(0) And insertedValue.Value = 1 Then
+                    tbl.DataBodyRange(article(1), tbl.ListColumns(comCell).Index).Value = "Article non inséré: Doublon existant" 'Commente la valeur déjà existante
+                    duplicate = True
+                End If
+            Next
+            If duplicate = False Then
+                ReDim Preserve noDuplicateInsert(insertCount)
+                noDuplicateInsert(insertCount) = article
+                insertCount = insertCount + 1
             End If
         Next
-        If duplicate = False Then
-            ReDim Preserve noDuplicateInsert(insertCount)
-            noDuplicateInsert(insertCount) = article
-            insertCount = insertCount + 1
-        End If
-    Next
+    End If
     
 If Not ArrayIsEmpty(noDuplicateInsert) Then 'Vérifie qu'il y a bien des valeurs a insérer
     For Each Insert In noDuplicateInsert 'Insere les valeurs non dupliquées dans les tableaux correspondant
@@ -69,7 +71,7 @@ If Not ArrayIsEmpty(noDuplicateInsert) Then 'Vérifie qu'il y a bien des valeurs
             Set targetRng = targetTbl.ListColumns(target(2)).DataBodyRange
             lastRow = targetRng.Rows(targetRng.Rows.count).Row
         
-            targetTbl.DataBodyRange(lastRow, targetTbl.ListColumns(target(2)).Index).Value = Insert(1)
+            targetTbl.DataBodyRange(lastRow, targetTbl.ListColumns(target(2)).Index).Value = Insert(0)
         
         Next
         tbl.DataBodyRange(Insert(1), tbl.ListColumns(insertCell).Index).Value = 1 'Mets à jour l'état de l'article
