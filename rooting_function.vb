@@ -6,68 +6,54 @@ Function ArrayIsEmpty(fArray()) As Boolean
     
 End Function
 
-Function rooting_data(fwaitingInsertRow()) As Variant
+Function rootDataing_data() As Variant
     
-    Dim tblRoot As ListObject
-    Dim rngRoot As Range
+    Dim tblrootData As ListObject
+    Dim rngrootData As Range
     Dim tableList() As Variant
     Dim sheetList() As Variant
     Dim sourceList() As Variant
     Dim targetList() As Variant
- 
-    Dim rootList() As Variant
-
-  
+    Dim rootDataList() As Variant
     Dim insertRowIndex As Integer
-    Dim rootSourceIndex As Integer
+    Dim rootDataSourceIndex As Integer
     Dim index As Integer
     Dim dataIndex As Integer
     
-    Set tblRoot = Worksheets("routing_sheet").ListObjects("routing_table")
-    Set rngRoot = tblRoot.ListColumns("source").DataBodyRange
+    Set tblrootData = Worksheets("routing_sheet").ListObjects("routing_table")
+    Set rngrootData = tblrootData.ListColumns("source").DataBodyRange
     
-    rootSourceIndex = 0
-    For Each rootSource In rngRoot
-        'Debug.Print rootSource & " pour la ligne " & insertRow
-        If rootSource = "idArticle" Then
-            ReDim Preserve sheetList(rootSourceIndex)
-            ReDim Preserve tableList(rootSourceIndex)
-            sheetList(rootSourceIndex) = tblRoot.DataBodyRange(rootSource.Row - 1, tblRoot.ListColumns("targetSheet").index).Value
-            tableList(rootSourceIndex) = tblRoot.DataBodyRange(rootSource.Row - 1, tblRoot.ListColumns("targetTable").index).Value
-            rootSourceIndex = rootSourceIndex + 1
+    rootDataSourceIndex = 0
+    For Each rootDataSource In rngrootData
+        If rootDataSource = "idArticle" Then
+            ReDim Preserve sheetList(rootDataSourceIndex)
+            ReDim Preserve tableList(rootDataSourceIndex)
+            sheetList(rootDataSourceIndex) = tblrootData.DataBodyRange(rootDataSource.Row - 1, tblrootData.ListColumns("targetSheet").index).Value
+            tableList(rootDataSourceIndex) = tblrootData.DataBodyRange(rootDataSource.Row - 1, tblrootData.ListColumns("targetTable").index).Value
+            rootDataSourceIndex = rootDataSourceIndex + 1
         End If
     Next
     
-
-    
-   
-    
     insertRowIndex = 0
     dataIndex = 0
-    For Each insertRow In fwaitingInsertRow
-        tableIndex = 0
         For Each Table In tableList
-        Debug.Print dataIndex
             index = 0
-            For Each rootSource In rngRoot
-                If tblRoot.DataBodyRange(rootSource.Row - 1, tblRoot.ListColumns("targetTable").index).Value = Table Then
+            For Each rootDataSource In rngrootData
+                If tblrootData.DataBodyRange(rootDataSource.Row - 1, tblrootData.ListColumns("targetTable").index).Value = Table Then
                 ReDim Preserve sourceList(index)
                 ReDim Preserve targetList(index)
-                sourceList(index) = rootSource
-                targetList(index) = tblRoot.DataBodyRange(rootSource.Row - 1, tblRoot.ListColumns("targetColumn").index).Value
+                sourceList(index) = rootDataSource
+                targetList(index) = tblrootData.DataBodyRange(rootDataSource.Row - 1, tblrootData.ListColumns("targetColumn").index).Value
                 index = index + 1
                 End If
             Next
-            ReDim Preserve rootList(dataIndex)
-            rootList(dataIndex) = Array(insertRow, Table, sheetList(tableIndex), sourceList, targetList)
+            ReDim Preserve rootDataList(dataIndex)
+            rootDataList(dataIndex) = Array(Table, sheetList(tableIndex), sourceList, targetList)
             tableIndex = tableIndex + 1
             dataIndex = dataIndex + 1
         Next
-        
-        insertRowIndex = insertRowIndex + 1
-    Next
    
-   rooting_data = rootList
+   rootDataing_data = rootDataList
 
 End Function
 Function ArrayLen(arr As Variant) As Integer
@@ -95,7 +81,7 @@ Sub AddArticle()
     
     
     Dim duplicate As Boolean
-    Dim rootResult() As Variant
+    Dim rootDataResult() As Variant
     Dim printing As String
     Dim printingSource As String
     Dim printingTarget As String
@@ -106,7 +92,7 @@ Sub AddArticle()
     ' Parcourir chaque ligne dans rngSource
     For Each Row In rngSource
         ' Vérifier si la valeur de la ligne est 0 et que la colonne "idArticle" n'est pas vide
-        If Row.Value = 0 And tblSource.DataBodyRange(Row.Row - 1, tblSource.ListColumns("idArticle").Index).Value <> "" Then
+        If Row.Value = 0 And tblSource.DataBodyRange(Row.Row - 1, tblSource.ListColumns("idArticle").index).Value <> "" Then
             ' Redimensionner le tableau newRowList pour ajouter la nouvelle ligne
             ReDim Preserve newRowList(size)
             newRowList(size) = Row.Row - 1
@@ -121,9 +107,9 @@ Sub AddArticle()
             duplicate = False
             ' Vérifier les doublons dans rngSource
             For Each Row In rngSource
-                If tblSource.DataBodyRange(Row.Row - 1, tblSource.ListColumns("idArticle").Index).Value = tblSource.DataBodyRange(newRow, tblSource.ListColumns("idArticle").Index).Value And Row.Value = 1 Then
+                If tblSource.DataBodyRange(Row.Row - 1, tblSource.ListColumns("idArticle").index).Value = tblSource.DataBodyRange(newRow, tblSource.ListColumns("idArticle").index).Value And Row.Value = 1 Then
                     ' Marquer la ligne comme doublon et ajouter un commentaire
-                    tblSource.DataBodyRange(newRow, tblSource.ListColumns("Commentaire").Index).Value = "Article non inséré: Doublon existant"
+                    tblSource.DataBodyRange(newRow, tblSource.ListColumns("Commentaire").index).Value = "Article non inséré: Doublon existant"
                     duplicate = True
                 End If
             Next
@@ -138,46 +124,43 @@ Sub AddArticle()
 
     ' Vérifier si waitingInsertList n'est pas vide
     If Not ArrayIsEmpty(waitingInsertList) Then
-        ' Appel de la fonction rooting_data pour traiter les données
-        rootResult = rooting_data(waitingInsertList)
-    End If
-
-    ' Parcourir chaque élément de rootResult
-    For Each dataRooted In rootResult
-        ' Définir la feuille de calcul cible et le tableau cible
-        Set targetWks = Worksheets(dataRooted(2))
-        Set targetTable = targetWks.ListObjects(dataRooted(1))
-        Set targetRng = targetTable.ListColumns("idArticle").DataBodyRange
-        
-        ' Ajouter une nouvelle ligne au tableau
-        Set newInsertRow = targetTable.ListRows.Add
-        Debug.Print "Dernière ligne " & newInsertRow.Index
-        Debug.Print "Ligne du header " & targetTable.HeaderRowRange.Row
-        
-        sourceIndex = 0
-        printing = "Insertion de la ligne " & dataRooted(0) & " dans la feuille " & dataRooted(2) & " dans le tableau " & dataRooted(1) & " "
-        printingSource = "avec pour source: "
-        printingTarget = "avec pour cible: "
-        
-        ' Parcourir chaque source et insérer les valeurs dans la nouvelle ligne
-        For Each Source In dataRooted(3)
-            printingSource = printingSource & Source & " "
-            printingTarget = printingTarget & dataRooted(4)(sourceIndex) & " "
+        ' Appel de la fonction rootDataing_data pour traiter les données
+        rootDataResult = rootDataing_data()
+    
+    
+    'Parcourir chaque ligne à insérer
+    For Each Row In waitingInsertList
+        'Parcourir la liste des tableaux de destination
+        For Each rootData In rootDataResult
+            ' Définir la feuille de calcul cible et le tableau cible
+            Set targetWks = Worksheets(rootData(1))
+            Set targetTable = targetWks.ListObjects(rootData(0))
+            Set targetRng = targetTable.ListColumns(rootData(2)(0)).DataBodyRange
             
-            ' Insérer la valeur dans la nouvelle ligne
-            newInsertRow.Range(targetTable.ListColumns(dataRooted(4)(sourceIndex)).Index).Value = tblSource.DataBodyRange(dataRooted(0), tblSource.ListColumns(Source).Index).Value
             
-            sourceIndex = sourceIndex + 1
+            ' Ajouter une nouvelle ligne au tableau
+            Set newInsertRow = targetTable.ListRows.Add
+            
+            sourceIndex = 0
+            printing = "Insertion de la ligne " & Row & " dans la feuille " & rootData(1) & " dans le tableau " & rootData(0) & " "
+            printingSource = "avec pour source: "
+            printingTarget = "avec pour cible: "
+            
+            For Each Source In rootData(2)
+                printingSource = printingSource & Source & " "
+                printingTarget = printingTarget & rootData(3)(sourceIndex) & " "
+            
+                ' Insérer la valeur dans la nouvelle ligne
+                newInsertRow.Range(targetTable.ListColumns(rootData(3)(sourceIndex)).index).Value = tblSource.DataBodyRange(Row, tblSource.ListColumns(Source).index).Value
+            
+                sourceIndex = sourceIndex + 1
+            Next
         Next
-        
-        printing = printing & printingSource & printingTarget
-        Debug.Print printing
-        
-        ' Marquer la ligne source comme insérée
-        tblSource.DataBodyRange(dataRooted(0), tblSource.ListColumns("inserted").Index).Value = 1
-        tblSource.DataBodyRange(dataRooted(0), tblSource.ListColumns("Commentaire").Index).Value = "Article ajouté"
+                    ' Marquer la ligne source comme insérée
+            tblSource.DataBodyRange(Row, tblSource.ListColumns("inserted").index).Value = 1
+            tblSource.DataBodyRange(Row, tblSource.ListColumns("Commentaire").index).Value = "Article ajouté"
     Next
-    
-    
+    End If
     
 End Sub
+
