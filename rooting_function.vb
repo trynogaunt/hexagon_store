@@ -6,7 +6,7 @@ Function ArrayIsEmpty(fArray()) As Boolean
     
 End Function
 
-Function rootDataing_data() As Variant
+Function rooting_data() As Variant
     
     Dim tblrootData As ListObject
     Dim rngrootData As Range
@@ -57,7 +57,9 @@ Function rootDataing_data() As Variant
             dataIndex = dataIndex + 1
         Next
    
-   rootDataing_data = rootDataList
+
+   rooting_data = rootDataList
+
 End If
 End Function
 Function ArrayLen(arr As Variant) As Integer
@@ -74,6 +76,8 @@ Sub AddArticle()
     Dim targetTable As ListObject
     Dim targetRng As Range
     Dim newInsertRow As ListRow
+    Dim headerRow As Long
+    Dim insertedValue As String
     
     Dim newRowList() As Variant
     Dim size As Integer
@@ -92,14 +96,18 @@ Sub AddArticle()
     
     Set tblSource = ActiveSheet.ListObjects("Insertion")
     Set rngSource = tblSource.ListColumns("inserted").DataBodyRange
+    headerRow = tblSource.HeaderRowRange.Row
+    
+
+   
     
     ' Parcourir chaque ligne dans rngSource
     For Each Row In rngSource
         ' Vérifier si la valeur de la ligne est 0 et que la colonne "idArticle" n'est pas vide
-        If Row.Value = 0 And tblSource.DataBodyRange(Row.Row - 1, tblSource.ListColumns("idArticle").index).Value <> "" Then
+        If Row.Value = 0 And tblSource.DataBodyRange(Row.Row - headerRow, tblSource.ListColumns("idArticle").index).Value <> "" Then
             ' Redimensionner le tableau newRowList pour ajouter la nouvelle ligne
             ReDim Preserve newRowList(size)
-            newRowList(size) = Row.Row - 1
+            newRowList(size) = Row.Row - headerRow
             size = size + 1
         End If
     Next
@@ -111,7 +119,7 @@ Sub AddArticle()
             duplicate = False
             ' Vérifier les doublons dans rngSource
             For Each Row In rngSource
-                If tblSource.DataBodyRange(Row.Row - 1, tblSource.ListColumns("idArticle").index).Value = tblSource.DataBodyRange(newRow, tblSource.ListColumns("idArticle").index).Value And Row.Value = 1 Then
+                If tblSource.DataBodyRange(Row.Row - headerRow, tblSource.ListColumns("idArticle").index).Value = tblSource.DataBodyRange(newRow, tblSource.ListColumns("idArticle").index).Value And Row.Value = 1 Then
                     ' Marquer la ligne comme doublon et ajouter un commentaire
                     tblSource.DataBodyRange(newRow, tblSource.ListColumns("Commentaire").index).Value = "Article non inséré: Doublon existant"
                     duplicate = True
@@ -129,10 +137,11 @@ Sub AddArticle()
     ' Vérifier si waitingInsertList n'est pas vide
     If Not ArrayIsEmpty(waitingInsertList) Then
         ' Appel de la fonction rootDataing_data pour traiter les données
-        rootDataResult = rootDataing_data()
+        rootDataResult = rooting_data()
     
     
     'Parcourir chaque ligne à insérer
+    printing = "Article ajouté:" & vbCrLf
     For Each Row In waitingInsertList
         'Parcourir la liste des tableaux de destination
         For Each rootData In rootDataResult
@@ -146,24 +155,24 @@ Sub AddArticle()
             Set newInsertRow = targetTable.ListRows.Add
             
             sourceIndex = 0
-            printing = "Insertion de la ligne " & Row & " dans la feuille " & rootData(1) & " dans le tableau " & rootData(0) & " "
-            printingSource = "avec pour source: "
-            printingTarget = "avec pour cible: "
+            
             
             For Each Source In rootData(2)
-                printingSource = printingSource & Source & " "
-                printingTarget = printingTarget & rootData(3)(sourceIndex) & " "
+                
             
                 ' Insérer la valeur dans la nouvelle ligne
                 newInsertRow.Range(targetTable.ListColumns(rootData(3)(sourceIndex)).index).Value = tblSource.DataBodyRange(Row, tblSource.ListColumns(Source).index).Value
-            
+                insertedValue = tblSource.DataBodyRange(Row, tblSource.ListColumns(Source).index).Value
                 sourceIndex = sourceIndex + 1
             Next
         Next
                     ' Marquer la ligne source comme insérée
             tblSource.DataBodyRange(Row, tblSource.ListColumns("inserted").index).Value = 1
             tblSource.DataBodyRange(Row, tblSource.ListColumns("Commentaire").index).Value = "Article ajouté"
+            printing = printing & insertedValue & vbCrLf
+            
     Next
+    MsgBox (printing)
     End If
     
 End Sub
