@@ -57,7 +57,9 @@ Function rooting_data() As Variant
             dataIndex = dataIndex + 1
         Next
    
+
    rooting_data = rootDataList
+
 End If
 End Function
 Function ArrayLen(arr As Variant) As Integer
