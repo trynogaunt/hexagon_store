@@ -36,6 +36,10 @@ Function rootDataing_data() As Variant
     
     insertRowIndex = 0
     dataIndex = 0
+    If ArrayIsEmpty(tableList) Then
+        MsgBox ("Table de routage vide")
+        Exit Function
+    Else
         For Each Table In tableList
             index = 0
             For Each rootDataSource In rngrootData
@@ -54,7 +58,7 @@ Function rootDataing_data() As Variant
         Next
    
    rootDataing_data = rootDataList
-
+End If
 End Function
 Function ArrayLen(arr As Variant) As Integer
     ArrayLen = UBound(arr) - LBound(arr) + 1
