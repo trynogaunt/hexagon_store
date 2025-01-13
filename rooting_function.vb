@@ -173,6 +173,8 @@ Sub AddArticle()
             
     Next
     MsgBox (printing)
+    Else
+    MsgBox("Aucun article à ajouter")
     End If
     
 End Sub
