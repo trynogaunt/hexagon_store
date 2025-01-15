@@ -105,7 +105,7 @@ Sub AddArticle()
     ' Parcourir chaque ligne dans rngSource
     For Each Row In rngSource
         ' Vérifier si la valeur de la ligne est 0 et que la colonne "idArticle" n'est pas vide
-        If Row.Value = 0 And tblSource.DataBodyRange(Row.Row - headerRow, tblSource.ListColumns("idArticle").index).Value <> "" Then
+        If Row.Value = 0  Or Row.Value = "" And tblSource.DataBodyRange(Row.Row - headerRow, tblSource.ListColumns("idArticle").index).Value <> "" Then
             ' Redimensionner le tableau newRowList pour ajouter la nouvelle ligne
             ReDim Preserve newRowList(size)
             newRowList(size) = Row.Row - headerRow
