@@ -22,14 +22,15 @@ Function rooting_data() As Variant
     
     Set tblrootData = Worksheets("routing_sheet").ListObjects("routing_table")
     Set rngrootData = tblrootData.ListColumns("source").DataBodyRange
+    rootheaderRow = tblrootData.HeaderRowRange.Row
     
     rootDataSourceIndex = 0
     For Each rootDataSource In rngrootData
         If rootDataSource = "idArticle" Then
             ReDim Preserve sheetList(rootDataSourceIndex)
             ReDim Preserve tableList(rootDataSourceIndex)
-            sheetList(rootDataSourceIndex) = tblrootData.DataBodyRange(rootDataSource.Row - 1, tblrootData.ListColumns("targetSheet").index).Value
-            tableList(rootDataSourceIndex) = tblrootData.DataBodyRange(rootDataSource.Row - 1, tblrootData.ListColumns("targetTable").index).Value
+            sheetList(rootDataSourceIndex) = tblrootData.DataBodyRange(rootDataSource.Row - rootheaderRow, tblrootData.ListColumns("targetSheet").index).Value
+            tableList(rootDataSourceIndex) = tblrootData.DataBodyRange(rootDataSource.Row - rootheaderRow, tblrootData.ListColumns("targetTable").index).Value
             rootDataSourceIndex = rootDataSourceIndex + 1
         End If
     Next
@@ -43,11 +44,11 @@ Function rooting_data() As Variant
         For Each Table In tableList
             index = 0
             For Each rootDataSource In rngrootData
-                If tblrootData.DataBodyRange(rootDataSource.Row - 1, tblrootData.ListColumns("targetTable").index).Value = Table Then
+                If tblrootData.DataBodyRange(rootDataSource.Row - rootheaderRow, tblrootData.ListColumns("targetTable").index).Value = Table Then
                 ReDim Preserve sourceList(index)
                 ReDim Preserve targetList(index)
                 sourceList(index) = rootDataSource
-                targetList(index) = tblrootData.DataBodyRange(rootDataSource.Row - 1, tblrootData.ListColumns("targetColumn").index).Value
+                targetList(index) = tblrootData.DataBodyRange(rootDataSource.Row - rootheaderRow, tblrootData.ListColumns("targetColumn").index).Value
                 index = index + 1
                 End If
             Next
