@@ -94,18 +94,19 @@ Sub AddArticle()
     Dim printing As String
     Dim printingSource As String
     Dim printingTarget As String
+    Dim printingsize As Integer
     
-    Set tblSource = ActiveSheet.ListObjects("Insertion")
+    Set tblSource = ActiveSheet.ListObjects("MLM_IMPORTATEUR_PRODUITS")
     Set rngSource = tblSource.ListColumns("inserted").DataBodyRange
     headerRow = tblSource.HeaderRowRange.Row
-    
+    Set printingsize = 0
 
    
     
     ' Parcourir chaque ligne dans rngSource
     For Each Row In rngSource
-        ' Vérifier si la valeur de la ligne est 0 et que la colonne "idArticle" n'est pas vide
-        If Row.Value = 0  Or Row.Value = "" And tblSource.DataBodyRange(Row.Row - headerRow, tblSource.ListColumns("idArticle").index).Value <> "" Then
+        ' Vérifier si la valeur de la ligne est 0 et que la colonne "référence article MLM" n'est pas vide
+        If Row.Value = 0 Or Row.Value = "" And tblSource.DataBodyRange(Row.Row - headerRow, tblSource.ListColumns("référence article MLM").index).Value <> "" Then
             ' Redimensionner le tableau newRowList pour ajouter la nouvelle ligne
             ReDim Preserve newRowList(size)
             newRowList(size) = Row.Row - headerRow
@@ -120,7 +121,7 @@ Sub AddArticle()
             duplicate = False
             ' Vérifier les doublons dans rngSource
             For Each Row In rngSource
-                If tblSource.DataBodyRange(Row.Row - headerRow, tblSource.ListColumns("idArticle").index).Value = tblSource.DataBodyRange(newRow, tblSource.ListColumns("idArticle").index).Value And Row.Value = 1 Then
+                If tblSource.DataBodyRange(Row.Row - headerRow, tblSource.ListColumns("référence article MLM").index).Value = tblSource.DataBodyRange(newRow, tblSource.ListColumns("référence article MLM").index).Value And Row.Value = 1 Then
                     ' Marquer la ligne comme doublon et ajouter un commentaire
                     tblSource.DataBodyRange(newRow, tblSource.ListColumns("Commentaire").index).Value = "Article non inséré: Doublon existant"
                     duplicate = True
@@ -149,7 +150,7 @@ Sub AddArticle()
             ' Définir la feuille de calcul cible et le tableau cible
             Set targetWks = Worksheets(rootData(1))
             Set targetTable = targetWks.ListObjects(rootData(0))
-            Set targetRng = targetTable.ListColumns(rootData(2)(0)).DataBodyRange
+            Set targetRng = targetTable.ListColumns(rootData(3)(0)).DataBodyRange
             
             
             ' Ajouter une nouvelle ligne au tableau
@@ -169,9 +170,15 @@ Sub AddArticle()
         Next
                     ' Marquer la ligne source comme insérée
             tblSource.DataBodyRange(Row, tblSource.ListColumns("inserted").index).Value = 1
-            tblSource.DataBodyRange(Row, tblSource.ListColumns("Commentaire").index).Value = "Article ajouté"
-            printing = printing & insertedValue & vbCrLf
+            tblSource.DataBodyRange(Row, tblSource.ListColumns("Commentaire").index).Value = "Article ajouté: " + Format(DateTime.Now, "yyyy-MM-dd hh:mm:ss")
             
+            If printingsize <= 9 Then
+                printing = printing & insertedValue & ","
+                printingsize = printingsize + 1
+            Else
+                printing = printing & insertedValue & vbCrLf
+                printingsize = 0
+            End If
     Next
     MsgBox (printing)
     Else
@@ -179,4 +186,7 @@ Sub AddArticle()
     End If
     
 End Sub
+
+
+
 
